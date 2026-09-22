@@ -24,6 +24,38 @@
       }
     }
   </script>
+  <style>
+    /* 管理画面用スタイル統合 */
+    .admin-card { background: #1e293b; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
+    .shop-select { width: 100%; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; margin-bottom: 15px; }
+    .input-line-id { width: 100%; padding: 10px; font-size: 14px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; margin-bottom: 20px; }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .status-card { background: #0f172a; padding: 15px; border-radius: 12px; }
+    .status-title { font-size: 12px; color: #64748b; font-weight: bold; }
+    .status-num { font-size: 36px; font-weight: bold; color: #38bdf8; margin-top: 5px; }
+    .btn-next { background: #22c55e; color: white; border: none; padding: 18px; font-size: 20px; font-weight: bold; border-radius: 14px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(34,197,94,0.3); margin-bottom: 12px; transition: all 0.1s; }
+    .btn-skip { background: #f59e0b; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 100%; margin-bottom: 20px; transition: all 0.1s; }
+    .btn-qr { background: #3b82f6; color: white; border: none; padding: 12px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.1s; }
+    .btn-next:active, .btn-skip:active, .btn-qr:active { transform: scale(0.98); }
+    .skipped-box { background: #0f172a; padding: 15px; border-radius: 12px; text-align: left; margin-bottom: 20px; border: 1px dashed #334155; }
+    .skipped-title { font-size: 13px; color: #f59e0b; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .skipped-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skip-tag { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+    .skip-tag button { background: #ef4444; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #fff; color: #1e293b; padding: 30px; border-radius: 20px; text-align: center; max-width: 360px; width: 90%; }
+    .qr-container { background: #fff; padding: 15px; display: inline-block; border-radius: 12px; margin: 15px 0; border: 1px solid #e2e8f0; }
+    .btn-print { background: #0f172a; color: white; border: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-right: 8px; }
+    .btn-close { background: #94a3b8; color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    .btn-reset { background: #ef4444; color: white; border: none; padding: 10px; font-size: 12px; border-radius: 8px; cursor: pointer; opacity: 0.6; }
+    .status-msg { margin-top: 15px; font-size: 13px; color: #f59e0b; }
+    @media print {
+      body * { visibility: hidden; }
+      #pdfGuideModal, #pdfGuideModal * { visibility: visible; }
+      #pdfGuideModal { position: absolute; left: 0; top: 0; width: 100%; text-align: left; color: #000; background: #fff; padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
@@ -37,13 +69,12 @@
         <span class="text-xl font-bold tracking-tight text-slate-900">my-queue</span>
       </div>
       <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-        <a href="#features" class="hover:text-brand-600">特徴</a>
-        <a href="#demo" class="hover:text-brand-600">デモ体験</a>
+        <a href="#demo" class="hover:text-brand-600">管理画面デモ</a>
         <a href="#flow" class="hover:text-brand-600">導入の流れ</a>
         <a href="#pricing" class="hover:text-brand-600">料金プラン</a>
         <a href="#pdf-guide" class="hover:text-brand-600">無料マニュアル</a>
       </div>
-      <button onclick="openModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-full font-semibold shadow-lg shadow-brand-500/20 transition">
+      <button onclick="openContactModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-full font-semibold shadow-lg shadow-brand-500/20 transition">
         今すぐ相談・お申込
       </button>
     </div>
@@ -63,112 +94,125 @@
         専用アプリのダウンロード不要。QRコードを読み込むだけで整理券が発行され、呼び出しメッセージがLINEに直接届きます。
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button onclick="openModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/25 transition">
+        <button onclick="openContactModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/25 transition">
           無料相談・導入はこちら
         </button>
         <a href="#demo" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-play text-brand-500"></i> デモを体験する
+          <i class="fa-solid fa-play text-brand-500"></i> 管理画面を直接試す
         </a>
       </div>
     </div>
   </section>
 
-  <!-- Demo Simulator Section -->
-  <section id="demo" class="py-16 bg-white border-y border-slate-100">
-    <div class="max-w-4xl mx-auto px-4">
-      <div class="text-center mb-10">
-        <h2 class="text-3xl font-bold text-slate-900 mb-3">ライブデモ体験</h2>
-        <p class="text-slate-600">実際の動作をこの場でシミュレーションできます</p>
+  <!-- Real Admin Panel Embedded Section -->
+  <section id="demo" class="py-16 bg-slate-900 text-white">
+    <div class="max-w-xl mx-auto px-4">
+      <div class="text-center mb-8">
+        <span class="bg-brand-500/20 text-brand-300 text-xs font-bold px-3 py-1 rounded-full border border-brand-500/30">実機リアルタイム接続中</span>
+        <h2 class="text-3xl font-bold mt-3 mb-2">店舗運営・呼び出しパネル（デモ）</h2>
+        <p class="text-slate-400 text-sm">実際の管理画面と同じUIで操作や呼び出しをリアルタイムでお試しいただけます。</p>
       </div>
-      <div class="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl">
-        <div class="flex justify-center gap-4 mb-6">
-          <button id="btn-customer" onclick="switchDemo('customer')" class="px-5 py-2.5 rounded-full font-bold bg-brand-500 text-white transition">
-            お客様画面（LINE発券）
-          </button>
-          <button id="btn-admin" onclick="switchDemo('admin')" class="px-5 py-2.5 rounded-full font-bold bg-slate-800 text-slate-400 hover:text-white transition">
-            店舗・運営画面（呼出管理）
-          </button>
+
+      <div class="admin-card">
+        <h1 style="color: #94a3b8; font-size: 16px; margin-bottom: 15px;">🛠️ 店舗運営・呼び出しパネル</h1>
+
+        <select class="shop-select" id="shopSelect" onchange="switchShop()">
+          <option value="shop1">店舗1</option>
+          <option value="shop2">店舗2</option>
+          <option value="shop3">店舗3</option>
+        </select>
+
+        <!-- 個別呼び出し用 LINE User ID 入力欄 -->
+        <input type="text" class="input-line-id" id="lineUserId" placeholder="通知先 LINE User ID (自動入力されます)">
+
+        <button class="btn-qr" onclick="openQRModal()">📱 店舗用QRコードを表示・印刷</button>
+
+        <div class="status-grid">
+          <div class="status-card">
+            <div class="status-title">現在呼び出し中</div>
+            <div class="status-num" id="currentNum">0 番</div>
+          </div>
+          <div class="status-card">
+            <div class="status-title">本日発行数</div>
+            <div class="status-num" id="maxNum" style="color: #a855f7;">0 番</div>
+          </div>
         </div>
 
-        <!-- Simulator Frame -->
-        <div class="bg-white text-slate-800 rounded-2xl p-6 max-w-md mx-auto min-h-[380px] flex flex-col justify-between shadow-inner">
-          <div id="demo-customer-view">
-            <div class="text-center mb-4">
-              <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-full font-semibold">LINEミニアプリ風</span>
-              <h3 class="text-xl font-bold mt-2">カフェ・ド・デモ 整理券</h3>
-            </div>
-            <div id="ticket-area" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center mb-4">
-              <p class="text-xs text-slate-500 mb-1">現在の待ち人数</p>
-              <p class="text-3xl font-black text-brand-600 mb-3" id="waiting-count">3組</p>
-              <button onclick="issueTicket()" id="issue-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-bold shadow transition">
-                整理券を発券する
-              </button>
-            </div>
-          </div>
+        <!-- メイン操作ボタン -->
+        <button class="btn-next" onclick="nextCustomer()">📢 次の方を呼び出す（LINE通知）</button>
+        <button class="btn-skip" onclick="skipCustomer()">⚠️ 不在のためスキップ（保留）</button>
 
-          <div id="demo-admin-view" class="hidden">
-            <div class="text-center mb-4 border-b pb-2">
-              <h3 class="text-xl font-bold text-slate-800">店舗管理ダッシュボード</h3>
-            </div>
-            <div class="space-y-3 mb-4">
-              <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border">
-                <div>
-                  <span class="text-xs font-bold text-slate-400">整理券番号</span>
-                  <p class="text-lg font-black text-slate-800">#001</p>
-                </div>
-                <button onclick="callTicket('001')" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-bold text-sm">
-                  LINE呼出
-                </button>
-              </div>
-              <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border">
-                <div>
-                  <span class="text-xs font-bold text-slate-400">整理券番号</span>
-                  <p class="text-lg font-black text-slate-800">#002</p>
-                </div>
-                <button onclick="callTicket('002')" class="bg-slate-300 text-slate-500 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed">
-                  呼び出し済
-                </button>
-              </div>
-            </div>
+        <!-- スキップ（不在）リスト -->
+        <div class="skipped-box">
+          <div class="skipped-title">
+            <span>📋 不在・スキップ中の番号</span>
+            <span style="font-size: 11px; color: #64748b;">（戻られたら削除）</span>
           </div>
+          <div class="skipped-tags" id="skipList">
+            <span style="font-size: 12px; color: #64748b;">なし</span>
+          </div>
+        </div>
 
-          <p class="text-xs text-center text-slate-400 mt-2">※シミュレーターのため実際のLINEメッセージは送信されません。</p>
+        <div id="statusMsg" class="status-msg"></div>
+
+        <div style="margin-top: 25px; text-align: right;">
+          <button class="btn-reset" onclick="resetQueue()">🔄 本日の番号リセット</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Setup Options (Self PDF vs Agency) -->
-  <section id="flow" class="py-16 max-w-5xl mx-auto px-4">
+  <!-- Setup Options -->
+  <section id="flow" class="py-16 max-w-6xl mx-auto px-4">
     <div class="text-center mb-12">
-      <h2 class="text-3xl font-bold text-slate-900 mb-3">選べる2つの導入方法</h2>
-      <p class="text-slate-600">自力でコストを抑えたい方も、プロにお任せしたい方も安心です。</p>
+      <h2 class="text-3xl font-bold text-slate-900 mb-3">選べる3つの導入方法</h2>
+      <p class="text-slate-600">自力でコストを抑えたい方も、プロに丸投げしたい方も安心です。</p>
     </div>
-    <div class="grid md:grid-cols-2 gap-8">
+    <div class="grid md:grid-cols-3 gap-6">
       <!-- Option A -->
-      <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-        <div class="absolute top-0 right-0 bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-bl-xl">
-          初期費用 0円
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="absolute top-0 right-0 bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-bl-xl">
+            初期費用 0円
+          </div>
+          <div class="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-xl font-bold mb-4">A</div>
+          <h3 class="text-lg font-bold mb-2">イラスト付きPDFで自分で設定</h3>
+          <p class="text-slate-600 text-xs mb-6">わかりやすい手順書を無料公開。LINE Developersの設定も図解入りで簡単に行えます。</p>
         </div>
-        <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-2xl font-bold mb-4">A</div>
-        <h3 class="text-xl font-bold mb-2">イラスト付きPDFで自分で設定</h3>
-        <p class="text-slate-600 text-sm mb-6">わかりやすい手順書を無料公開。LINE Developersの設定も図解入りで簡単に行えます。</p>
-        <a href="#pdf-guide" class="block text-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl transition">
+        <button onclick="openPdfModal()" class="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl transition text-sm">
           無料マニュアルを見る
-        </a>
+        </button>
       </div>
 
       <!-- Option B -->
-      <div class="bg-white p-8 rounded-2xl border-2 border-brand-500 shadow-lg relative overflow-hidden">
-        <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl">
-          人気ナンバーワン
+      <div class="bg-white p-6 rounded-2xl border-2 border-brand-500 shadow-lg relative overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl">
+            人気No.1
+          </div>
+          <div class="w-10 h-10 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center text-xl font-bold mb-4">B</div>
+          <h3 class="text-lg font-bold mb-2">初期設定おまかせ代行</h3>
+          <p class="text-slate-600 text-xs mb-2">LINE公式アカウント作成後、1分で終わる招待リンクを送るだけ！面倒な開発者設定を代行します。</p>
+          <p class="text-brand-600 font-bold text-xs mb-6">+2,000円（税込）</p>
         </div>
-        <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center text-2xl font-bold mb-4">B</div>
-        <h3 class="text-xl font-bold mb-2">初期設定おまかせ代行</h3>
-        <p class="text-slate-600 text-sm mb-2">LINE公式アカウントの作成からシステム連携まで全て代行いたします。</p>
-        <p class="text-brand-600 font-bold text-sm mb-6">※設定代行費：2,000円（2ヶ月継続で実質0円！）</p>
-        <button onclick="openModal('おまかせ代行')" class="w-full text-center bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-500/20 transition">
-          代行オプションで申し込む
+        <button onclick="openContactModal('', 'おまかせ代行')" class="w-full text-center bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md shadow-brand-500/20 transition text-sm">
+          設定代行で申し込む
+        </button>
+      </div>
+
+      <!-- Option C -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="absolute top-0 right-0 bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1.5 rounded-bl-xl">
+            完全丸投げ
+          </div>
+          <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl font-bold mb-4">C</div>
+          <h3 class="text-lg font-bold mb-2">LINE作成まるごと完全代行</h3>
+          <p class="text-slate-600 text-xs mb-2">LINE公式アカウントの開設すら面倒な方向け！店舗名と写真を送るだけで全て完成させて納品します。</p>
+          <p class="text-purple-600 font-bold text-xs mb-6">+3,500円（税込）</p>
+        </div>
+        <button onclick="openContactModal('', '完全丸投げ代行')" class="w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition text-sm">
+          丸投げプランで申し込む
         </button>
       </div>
     </div>
@@ -198,7 +242,7 @@
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-500"></i> 最低利用期間なし（1ヶ月〜解約可）</li>
             </ul>
           </div>
-          <button onclick="openModal('個人店舗月額プラン')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition">
+          <button onclick="openContactModal('個人店舗月額プラン')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition">
             このプランで申し込む
           </button>
         </div>
@@ -222,7 +266,7 @@
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-500"></i> 直前のお申し込み対応可</li>
             </ul>
           </div>
-          <button onclick="openModal('学祭・買い切りパック')" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transition">
+          <button onclick="openContactModal('学祭・買い切りパック')" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transition">
             このプランで申し込む
           </button>
         </div>
@@ -239,17 +283,146 @@
         <p class="text-slate-200 max-w-xl mx-auto mb-8 text-sm md:text-base">
           LINE DevelopersでのLIFF作成やアクセストークン発行手順をイラスト付きで徹底解説したマニュアルを全ページ無料公開中！
         </p>
-        <button onclick="alert('PDFマニュアルの無料ダウンロードURLを開きます')" class="bg-white text-emerald-900 hover:bg-slate-100 font-extrabold px-8 py-4 rounded-xl shadow-lg transition inline-flex items-center gap-2">
-          <i class="fa-solid fa-download"></i> マニュアルPDFを無料で見る
+        <button onclick="openPdfModal()" class="bg-white text-emerald-900 hover:bg-slate-100 font-extrabold px-8 py-4 rounded-xl shadow-lg transition inline-flex items-center gap-2">
+          <i class="fa-solid fa-book-open"></i> マニュアルPDFを無料で見る
         </button>
       </div>
     </div>
   </section>
 
+  <!-- PDF Document View Modal -->
+  <div id="pdfGuideModal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-2 md:p-6">
+    <div class="bg-white rounded-2xl max-w-4xl w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden relative">
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between no-print">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-file-pdf text-emerald-400 text-xl"></i>
+          <div>
+            <h3 class="font-bold text-base leading-tight">LINE順番呼び出しシステム 初期設定ガイド</h3>
+            <p class="text-xs text-slate-400">作成日: 2026年3月 | 全5ステップ完全解説</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="line_setup_guide.pdf" download class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+            <i class="fa-solid fa-download"></i> PDF保存
+          </a>
+          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-print"></i> 印刷
+          </button>
+          <button onclick="closePdfModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Document Content) -->
+      <div class="p-6 md:p-10 overflow-y-auto space-y-8 bg-slate-50 text-slate-800 text-sm leading-relaxed flex-1">
+        
+        <!-- Document Title Banner -->
+        <div class="bg-emerald-800 text-white p-6 rounded-2xl shadow-sm border border-emerald-700">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="bg-emerald-600 text-xs font-bold px-2.5 py-1 rounded text-emerald-100 uppercase tracking-wider">Official Manual</span>
+              <h1 class="text-2xl font-extrabold mt-2">LINE順番呼び出しシステム 初期設定ガイド</h1>
+              <p class="text-emerald-100 text-xs mt-1">LINE Developers・Messaging API・LIFF設定の完全マニュアル</p>
+            </div>
+            <i class="fa-solid fa-qrcode text-5xl text-emerald-500 opacity-50"></i>
+          </div>
+        </div>
+
+        <!-- Section 1 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-lg font-bold text-emerald-800 border-b pb-2 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">STEP 1</span>
+            LINE Official Account（公式アカウント）の作成
+          </h2>
+          <ol class="list-decimal pl-5 space-y-2 text-slate-700">
+            <li><strong class="text-slate-900">LINE Official Account Manager</strong>（<a href="https://manager.line.biz" target="_blank" class="text-emerald-600 underline">manager.line.biz</a>）にアクセスします。</li>
+            <li>「アカウント作成」をクリックし、店舗名・連絡先・業界カテゴリを入力して登録を完了します。</li>
+            <li>管理画面トップの「応答設定」から、応答モードを<strong>「チャット」または「Bot」</strong>に設定します。</li>
+          </ol>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-lg font-bold text-emerald-800 border-b pb-2 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">STEP 2</span>
+            LINE Developers プロバイダー＆チャネルの作成
+          </h2>
+          <ol class="list-decimal pl-5 space-y-2 text-slate-700">
+            <li><strong class="text-slate-900">LINE Developers Console</strong>（<a href="https://developers.line.biz" target="_blank" class="text-emerald-600 underline">developers.line.biz</a>）へログインします。</li>
+            <li>「プロバイダーを作成」ボタンを押して、店舗名や組織名（例: 「マイカフェ」）を入力します。</li>
+            <li>「新規チャネル作成」から<strong> Messaging API </strong>を選択します。</li>
+            <li>チャネル名・説明文・アプリ用画像を登録し、利用規約に同意して「作成」をクリックします。</li>
+          </ol>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-lg font-bold text-emerald-800 border-b pb-2 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">STEP 3</span>
+            チャネルアクセストークン（長期）の発行
+          </h2>
+          <ol class="list-decimal pl-5 space-y-2 text-slate-700">
+            <li>作成したMessaging APIチャネルの設定画面を開きます。</li>
+            <li>「Messaging API設定」タブを選択し、ページ最下部までスクロールします。</li>
+            <li>「チャネルアクセストークン（長期）」の横にある<strong class="text-slate-900">「発行」ボタン</strong>をクリックします。</li>
+            <li>生成された長い文字列（トークン）をコピーし、my-queue管理画面に入力します。</li>
+          </ol>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-lg font-bold text-emerald-800 border-b pb-2 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">STEP 4</span>
+            LIFF（LINE Front-end Framework）アプリの登録
+          </h2>
+          <ol class="list-decimal pl-5 space-y-2 text-slate-700">
+            <li>LINE Developers画面で「LIFF」タブを開き、「追加」ボタンを押します。</li>
+            <li>LIFFアプリ名（例: 整理券発券画面）を入力します。</li>
+            <li>サイズは<strong class="text-slate-900">「Full」または「Tall」</strong>を選択します。</li>
+            <li>エンドポイントURLにmy-queueから提供された発券画面URLを入力し、保存します。</li>
+            <li>発行された<strong class="text-slate-900">「LIFF ID（例: 2001234567-AbCdEfGh）」</strong>をコピーして設定に貼り付けます。</li>
+          </ol>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-lg font-bold text-emerald-800 border-b pb-2 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">STEP 5</span>
+            動作確認と店舗用QRコードの印刷
+          </h2>
+          <ol class="list-decimal pl-5 space-y-2 text-slate-700">
+            <li>my-queue管理パネルの「店舗用QRコードを表示・印刷」ボタンを押します。</li>
+            <li>スマートフォンで表示されたQRコードを読み取り、LINEで整理券が正常に発行されるかテストします。</li>
+            <li>管理画面で「次の方を呼び出す」を押し、LINEに通知メッセージが届くことを確認します。</li>
+            <li>確認完了後、印刷用ボタンからQRコードPOPを出力して店頭に掲示してください。</li>
+          </ol>
+        </div>
+
+        <!-- Notice Box -->
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl text-amber-900 text-xs space-y-1">
+          <div class="font-bold text-sm flex items-center gap-1.5 mb-1">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> 設定に不安がある場合
+          </div>
+          <p>設定作業中にエラーが発生する場合や、手順が不明な場合は「初期設定おまかせ代行（+2,000円）」をご利用いただくことで、スタッフが最短15分で全ての設定を代行いたします。</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-100 border-t border-slate-200 px-6 py-3 flex justify-between items-center no-print">
+        <span class="text-xs text-slate-500">my-queue Official Support</span>
+        <button onclick="closePdfModal()" class="bg-slate-900 text-white font-bold px-6 py-2 rounded-xl text-xs transition hover:bg-slate-800">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Contact Modal -->
-  <div id="modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div id="contactModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-xl">
+      <button onclick="closeContactModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-xl">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
@@ -275,6 +448,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">希望プラン</label>
           <select id="form-plan" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+            <option value="無料モニター希望">🎁 無料モニター希望（先着3名限定）</option>
             <option value="個人店舗月額プラン">個人店舗 月額プラン（1,980円/月）</option>
             <option value="学祭・買い切りパック">学祭・買い切りパック（3,000円）</option>
             <option value="まずは相談したい">まずは相談・質問したい</option>
@@ -286,6 +460,7 @@
           <select id="form-option" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
             <option value="PDFを見て自分で設定">自分で設定する（初期費用0円）</option>
             <option value="おまかせ代行">初期設定おまかせ代行（+2,000円）</option>
+            <option value="完全丸投げ代行">LINE作成まるごと完全代行（+3,500円）</option>
           </select>
         </div>
 
@@ -301,62 +476,241 @@
     </div>
   </div>
 
+  <!-- QRコード表示モーダル・印刷エリア -->
+  <div class="modal" id="qrModal">
+    <div class="modal-content" id="printArea">
+      <h2 style="font-size: 22px; margin-bottom: 5px;" id="modalShopName">順番待ち受付</h2>
+      <p style="font-size: 13px; color: #64748b; margin-top: 0;">スマホでQRコードを読み取って<br>整理券を発行してください</p>
+      
+      <div class="qr-container">
+        <div id="qrcode"></div>
+      </div>
+
+      <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-bottom: 15px;" id="targetUrl"></div>
+
+      <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ 印刷する</button>
+        <button class="btn-close" onclick="closeQRModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase & QR Code SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <script>
-    // Modal controls
-    function openModal(defaultPlan = '') {
+    // 💡 Firebase 設定情報
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtWL5QTMOKHUZfb9MZoAt4NtBue2SNd7E",
+      authDomain: "qr-customer-call.firebaseapp.com",
+      projectId: "qr-customer-call",
+      storageBucket: "qr-customer-call.firebasestorage.app",
+      messagingSenderId: "809125472107",
+      appId: "1:809125472107:web:f25fd8367ab69728bc8a7e",
+      measurementId: "G-VT8ZHEXYMX"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentShopId = 'shop1';
+    let unsubscribe = null;
+
+    function switchShop() {
+      currentShopId = document.getElementById('shopSelect').value;
+      if (unsubscribe) unsubscribe();
+
+      const ref = db.collection('queueShops').doc(currentShopId);
+      unsubscribe = ref.onSnapshot(doc => {
+        if (!doc.exists) {
+          ref.set({ name: '店舗', current: 0, max: 0, skips: [], userIds: {} });
+          return;
+        }
+        const data = doc.data();
+        document.getElementById('currentNum').innerText = `${data.current || 0} 番`;
+        document.getElementById('maxNum').innerText = `${data.max || 0} 番`;
+        renderSkips(data.skips || []);
+        showMsg("");
+      }, error => {
+        console.error("Firestore Error:", error);
+        showMsg("❌ データベース接続エラーです。");
+      });
+    }
+
+    // LINE通知送信関数
+    async function sendLineNotification(ticketNumber) {
+      const select = document.getElementById('shopSelect');
+      const shopName = select.options[select.selectedIndex].text;
+      const lineUserId = document.getElementById('lineUserId').value.trim();
+
+      if (!lineUserId) {
+        showMsg(`📢 番号 ${ticketNumber} 番を呼び出しました（LINE ID未連携のため通知なし）`);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shopName, ticketNumber, lineUserId })
+        });
+
+        if (res.ok) {
+          showMsg(`✅ 番号 ${ticketNumber} 番へLINE通知を送信しました！`);
+        } else {
+          const errData = await res.json();
+          showMsg(`⚠️ LINE送信失敗: ${JSON.stringify(errData)}`);
+        }
+      } catch (err) {
+        showMsg('❌ 通信エラーでLINE通知が送信できませんでした');
+      }
+    }
+
+    // 次のお客さんを呼び出す（呼び出し＋自動LINE通知）
+    function nextCustomer() {
+      const ref = db.collection('queueShops').doc(currentShopId);
+      let targetUserId = null;
+
+      db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          if (!doc.exists) return;
+          const current = doc.data().current || 0;
+          const max = doc.data().max || 0;
+          const userIds = doc.data().userIds || {};
+
+          if (current < max) {
+            const nextNum = current + 1;
+            targetUserId = userIds[nextNum] || null;
+            transaction.update(ref, { current: nextNum });
+            return nextNum;
+          } else {
+            showMsg("⚠️ 待っているお客さまはいません。");
+            return null;
+          }
+        });
+      }).then(nextNum => {
+        if (nextNum) {
+          if (targetUserId) {
+            document.getElementById('lineUserId').value = targetUserId;
+          } else {
+            document.getElementById('lineUserId').value = "";
+          }
+          sendLineNotification(nextNum);
+        }
+      });
+    }
+
+    // スキップ処理
+    function skipCustomer() {
+      const ref = db.collection('queueShops').doc(currentShopId);
+      db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          if (!doc.exists) return;
+          const current = doc.data().current || 0;
+          const max = doc.data().max || 0;
+          let skips = doc.data().skips || [];
+
+          if (current === 0) {
+            showMsg("⚠️ まだ誰も呼び出されていません。");
+            return;
+          }
+
+          if (!skips.includes(current)) skips.push(current);
+
+          const nextNum = current < max ? current + 1 : current;
+          transaction.update(ref, { skips: skips, current: nextNum });
+        });
+      }).then(() => showMsg("番号をスキップリストへ移動しました"));
+    }
+
+    // スキップ解除
+    function removeSkip(num) {
+      const ref = db.collection('queueShops').doc(currentShopId);
+      db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          if (!doc.exists) return;
+          let skips = doc.data().skips || [];
+          skips = skips.filter(n => n !== num);
+          transaction.update(ref, { skips: skips });
+        });
+      });
+    }
+
+    // QRコード表示用モーダルの開閉と生成 (LIFF URL)
+    function openQRModal() {
+      const select = document.getElementById('shopSelect');
+      const shopName = select.options[select.selectedIndex].text;
+      
+      const targetUrl = `https://liff.line.me/2011502822-9gjbFKnE?shop=${currentShopId}`;
+
+      document.getElementById('modalShopName').innerText = `${shopName} 順番待ち受付`;
+      document.getElementById('targetUrl').innerText = targetUrl;
+
+      document.getElementById('qrcode').innerHTML = "";
+      new QRCode(document.getElementById('qrcode'), {
+        text: targetUrl,
+        width: 180,
+        height: 180
+      });
+
+      document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQRModal() {
+      document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // PDF Guide Modal Controls
+    function openPdfModal() {
+      document.getElementById('pdfGuideModal').classList.remove('hidden');
+    }
+
+    function closePdfModal() {
+      document.getElementById('pdfGuideModal').classList.add('hidden');
+    }
+
+    function renderSkips(skips) {
+      const container = document.getElementById('skipList');
+      if (skips.length === 0) {
+        container.innerHTML = '<span style="font-size: 12px; color: #64748b;">なし</span>';
+        return;
+      }
+      container.innerHTML = skips.map(num => `
+        <div class="skip-tag">
+          ${num} 番
+          <button onclick="removeSkip(${num})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function resetQueue() {
+      if (confirm('本日のデータをリセット（0番に戻す）しますか？')) {
+        db.collection('queueShops').doc(currentShopId).set({ name: '店舗', current: 0, max: 0, skips: [], userIds: {} });
+      }
+    }
+
+    function showMsg(text) {
+      document.getElementById('statusMsg').innerText = text;
+    }
+
+    // Contact Modal controls
+    function openContactModal(defaultPlan = '', defaultOption = '') {
       if(defaultPlan) {
         document.getElementById('form-plan').value = defaultPlan;
-        if(defaultPlan === 'おまかせ代行') {
-          document.getElementById('form-option').value = 'おまかせ代行';
-        }
       }
-      document.getElementById('modal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
-
-    // Interactive Demo controls
-    function switchDemo(type) {
-      const cView = document.getElementById('demo-customer-view');
-      const aView = document.getElementById('demo-admin-view');
-      const cBtn = document.getElementById('btn-customer');
-      const aBtn = document.getElementById('btn-admin');
-
-      if(type === 'customer') {
-        cView.classList.remove('hidden');
-        aView.classList.add('hidden');
-        cBtn.className = "px-5 py-2.5 rounded-full font-bold bg-brand-500 text-white transition";
-        aBtn.className = "px-5 py-2.5 rounded-full font-bold bg-slate-800 text-slate-400 hover:text-white transition";
-      } else {
-        cView.classList.add('hidden');
-        aView.classList.remove('hidden');
-        aBtn.className = "px-5 py-2.5 rounded-full font-bold bg-brand-500 text-white transition";
-        cBtn.className = "px-5 py-2.5 rounded-full font-bold bg-slate-800 text-slate-400 hover:text-white transition";
+      if(defaultOption) {
+        document.getElementById('form-option').value = defaultOption;
       }
+      document.getElementById('contactModal').classList.remove('hidden');
     }
 
-    let issued = false;
-    function issueTicket() {
-      const area = document.getElementById('ticket-area');
-      if(!issued) {
-        area.innerHTML = `
-          <div class="p-2 bg-brand-50 rounded-lg">
-            <p class="text-xs text-brand-700 font-bold">発券完了！</p>
-            <p class="text-2xl font-black text-slate-800 my-1">あなたの番号: #004</p>
-            <p class="text-xs text-slate-500">順番が近づくとLINEに通知が届きます</p>
-          </div>
-        `;
-        issued = true;
-      }
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.add('hidden');
     }
 
-    function callTicket(num) {
-      alert(`整理券 #${num} のお客様へLINE呼び出し通知を送信しました！`);
-    }
-
-    // Backend Form submission via Serverless API (/api/contact)
+    // Contact Form submit
     async function handleFormSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
@@ -381,7 +735,7 @@
 
         if(res.ok) {
           alert('お問い合わせを送信しました！内容を確認し次第、担当者よりご連絡いたします。');
-          closeModal();
+          closeContactModal();
           document.getElementById('contactForm').reset();
         } else {
           alert('送信に失敗しました。時間をおいて再度お試しください。');
@@ -394,6 +748,9 @@
         btn.innerText = '送信する';
       }
     }
+
+    // Initialize shop
+    switchShop();
   </script>
 </body>
 </html>
